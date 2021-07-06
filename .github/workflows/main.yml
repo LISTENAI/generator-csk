@@ -1,4 +1,4 @@
-name: npm-publish
+name: lpm-publish-latest
 
 on:
   release:

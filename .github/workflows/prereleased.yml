@@ -1,4 +1,4 @@
-name: npm-publish
+name: lpm-publish-beta
 
 on:
   release:
