@@ -1,0 +1,10 @@
+node_modules
+lib
+out
+cskproject
+.lisa
+.DS_Store
+target
+optimize/audio_record/**
+spec/dataset/audio_original/**
+test__project

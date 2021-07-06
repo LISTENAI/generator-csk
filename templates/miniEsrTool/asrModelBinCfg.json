@@ -1,0 +1,7 @@
+{
+	"buildLanguageModel": {
+		"keyword_text_asr_path": "./cmd_finaly.txt",
+		"keyword_bin_asr_path": "./cmd.bin",
+		"mode_miniesr_type":"asr"
+	}
+}

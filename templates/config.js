@@ -1,0 +1,12 @@
+const lisa = require('@listenai/lisa_core')
+const path = require('path')
+module.exports = ({application, fs, ...core} = lisa) => {
+  application.configuration(config => {
+    config.task_path = path.join(__dirname, './task.js')
+
+    // config可配置属性请参考: https://open.listenai.com/lisacore/index.html
+    // application.addGlobalContext({
+      
+    // })
+  })
+}

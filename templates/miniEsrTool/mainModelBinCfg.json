@@ -1,0 +1,7 @@
+{
+	"buildLanguageModel": {
+		"keyword_text_asr_path": "./main_finaly.txt",
+		"keyword_bin_asr_path": "./main.bin",
+		"mode_miniesr_type":"main"
+	}
+}

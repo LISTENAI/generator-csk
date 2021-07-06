@@ -1,0 +1,22 @@
+name: npm-publish
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+      - run: npm install
+      - run: npm install
+      - run: |
+          echo -e "//registry-lpm.listenai.com/:_password=${{ secrets.LPM_ZHUOBIN_TOKEN }}" > .npmrc
+          echo -e "//registry-lpm.listenai.com/:username=zbzhao" >> .npmrc
+          echo -e "//registry-lpm.listenai.com/:email=zbzhao@listenai.com" >> .npmrc
+          echo -e "//registry-lpm.listenai.com/:always-auth=true" >> .npmrc
+      - run: npm publish --registry=https://registry-lpm.listenai.com
