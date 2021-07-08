@@ -340,50 +340,89 @@ export default class InitAsr {
     }
 
     async _handleWordsThreshold (fileName: string) {
-        const buildingTxtFile = buildingFile(this._application, `${fileName}.txt`)
+        // 词
+        const words: IcmdWord[] = fileName === 'main' ? this._pconfig.wakeup : this._pconfig.wakeup.concat(this._pconfig.cmds)
 
-        if (!fs.existsSync(buildingFile(this._application, `${fileName}_train.txt`))) {
-            fs.copyFileSync(buildingTxtFile, buildingFile(this._application, `${fileName}_train.txt`))
+        // building里的阈值文件
+        const buildingTxtFile = buildingFile(this._application, `${fileName}.txt`)
+        let buildingThreshold: string[] = []
+        if (fs.existsSync(buildingTxtFile)) {
+            buildingThreshold = fs.readFileSync(buildingTxtFile).toString().split('\r').join('').split('\n').filter(val => val !== '')
+        }
+        
+        // @algo包的阈值文件
+        const algoConfig = this._application.context?.algo || {}
+        const algoTxtFile = algoConfig[`${fileName}_txt`] || ''
+        let algoThreshold: string[] = []
+        if (algoTxtFile && fs.existsSync(algoTxtFile)) {
+            algoThreshold = fs.readFileSync(algoTxtFile).toString().split('\r').join('').split('\n').filter(val => val !== '')
         }
 
+        // 项目里的阈值文件
         let thresholdTxtFile = thresholdsFile(this._application, `${fileName}_finaly.txt`)
         if (!fs.existsSync(thresholdTxtFile)) {
             thresholdTxtFile = thresholdsFile(this._application, `${fileName}.txt`)
         }
-        if (!fs.existsSync(thresholdTxtFile)) {
-            // 如果原本没有阈值文件，返回
-            return
+        let projectThreshold: string[] = []
+        if (fs.existsSync(thresholdTxtFile)) {
+            projectThreshold = fs.readFileSync(thresholdTxtFile).toString().split('\r').join('').split('\n').filter(val => val !== '')
         }
 
-        const baseTxtArr = []
+        // 逻辑：根据词，找阈值，顺序为：项目里的阈值文件 > @algo包的阈值文件 > building里的阈值文件
         
-        const wordsThresholdStr = fs.readFileSync(buildingTxtFile).toString()
-        const wordsThreshold = wordsThresholdStr.split('\r').join('').split('\n').filter(val => val !== '')
-        
-        const lastWordsThresholdStr = fs.readFileSync(thresholdTxtFile).toString()
-        const lastWordsThreshold = lastWordsThresholdStr.split('\r').join('').split('\n').filter(val => val !== '')
-    
-        let change = false
-    
-        for (let i = 0; i <= wordsThreshold.length - 1; i++) {
-          const tmp = wordsThreshold[i].split(',')
-          for (let j = 0; j <= lastWordsThreshold.length - 1; j++) {
-            const oldTmp = lastWordsThreshold[j].split(',')
-            if (oldTmp[4] === tmp[4]) {
-              if (tmp[1] !== oldTmp[1] || tmp[2] !== oldTmp[2]) {
-                tmp[1] = parseInt(oldTmp[1], 10) > 0 ? oldTmp[1] : tmp[1]
-                tmp[2] = oldTmp[2]
-                change = true
-              }
-              break
-            }
-          }
-          baseTxtArr.push(tmp)
+        const baseTxtArr: string[] = []
+        // 单条阈值例子： -1 614 1154 -1 966 904 -1 2224 2463 ,500,0 -10000,10000,di1 feng1 su4
+        words.forEach(word => {
+            const pinyin = word.pinyin
+            // 标记
+            let tag = false
+
+            // 遍历时，可减掉数组长度，但数组长度较小，并没有太大的性能问题。
+
+            // 遍历项目里的阈值
+            projectThreshold.forEach(thresholdStr => {
+                const threshold = thresholdStr.split(',')
+                if (threshold[4] === pinyin) {
+                    // 当拼音一样，该阈值可以保存
+                    baseTxtArr.push(thresholdStr)
+                    tag = true
+                }
+            })
+
+            // 该词已找到优先级高的阈值，进入下一个词
+            if (tag) return
+
+            // 遍历@algo包的阈值
+            algoThreshold.forEach(thresholdStr => {
+                const threshold = thresholdStr.split(',')
+                if (threshold[4] === pinyin) {
+                    // 当拼音一样，该阈值可以保存
+                    baseTxtArr.push(thresholdStr)
+                    tag = true
+                }
+            })
+
+            // 该词已找到优先级高的阈值，进入下一个词
+            if (tag) return
+
+            // 遍历building里的阈值
+            buildingThreshold.forEach(thresholdStr => {
+                const threshold = thresholdStr.split(',')
+                if (threshold[4] === pinyin) {
+                    // 当拼音一样，该阈值可以保存
+                    baseTxtArr.push(thresholdStr)
+                    tag = true
+                }
+            })
+        })
+
+        // 保存到building
+        fs.writeFileSync(buildingTxtFile, baseTxtArr.join('\n'))
+
+        if (!fs.existsSync(buildingFile(this._application, `${fileName}_train.txt`))) {
+            fs.copyFileSync(buildingTxtFile, buildingFile(this._application, `${fileName}_train.txt`))
         }
-        const baseTxt = baseTxtArr.map(item => item.join(',')).join(';')
-        fs.writeFileSync(buildingTxtFile, baseTxt.replace(/;/g, '\n'))
-        return change
-      }
+    }
 
     async _buildMainCmdBin() {
         const exe = this._application.context.cskBuild?.miniEsrTool.exe

@@ -2,13 +2,14 @@
  * 和用户交互的界面，注意本代码必须经过自动化测试，不要想当然不写测试代码
  */
 
-import { application, cmd, flags } from '@listenai/lisa_core';
+import { application, cmd, flags, got } from '@listenai/lisa_core';
 import cli from 'cli-ux'
 import * as path from 'path'
 import * as inquirer from 'inquirer'
 import * as Configstore from 'configstore'
 import compare from './util/compare'
 import getLogToken from './util/getLogToken'
+import cookie from './libs/cookie'
 
 const UNPROD = ['dev', 'debug']
 
@@ -116,72 +117,89 @@ export class CliUx {
   @flags('algo')
   async getAlgo() {
     const config = new Configstore('lisa')
+    const aiwrap = config.get('createCacheFirmware')?.aiwrap || false
     try {
-      const algoSearchRes = await cmd('npm', ['search', '@algo', '--long', '--json', config.get('lpmRc')])
-      let algoList = JSON.parse(algoSearchRes.stdout)
-      if (algoList.length > 0) {
-        algoList = algoList.filter((algo: any) => algo.keywords.includes(config.get('createCacheFirmware').chip) && 
-          (config.get('createCacheFirmware')?.aiwrap ?
-            algo.keywords.includes('aiwrap') : !algo.keywords.includes('aiwrap')))
+      let language, type, algo = ''
 
-        const response: any = await inquirer.prompt(
+      if (aiwrap) {
+        {
+          const { body } = await got('https://admin.iflyos.cn/api/v1/ai_resources/client/product_options', {
+            headers: {
+              Authorization: `Bearer ${await cookie.getAccessToken()}`,
+            },
+            responseType: 'json'
+          })
+          const {language: languages, product_type: types } = body as { language: Array<string>; product_type: Array<string>;}
+          const languageSel: any = await inquirer.prompt(
             [
                 {
-                    name: 'algo',
-                    message: '选择算法模型',
+                    name: 'val',
+                    message: '选择项目语言',
                     type: 'list',
-                    choices: algoList.map((bias: any) => bias.name),
+                    choices: languages,
                 },
             ]
-        )
-        const algo = response.algo
-
-        if (UNPROD.includes(process.env.LISA_ENV || '')) {
-          const firmwareVersionSearchRes = await cmd('npm', ['view', algo, 'dist-tags', config.get('lpmRc')])
-          const listStr = firmwareVersionSearchRes.stdout.replace(/(\s*?{\s*?|\s*?,\s*?)(['"])?([a-zA-Z0-9]+)(['"])?:/g, '$1"$3":').replace(/'/g, '"')
-
-          let algoTagsList = JSON.parse(listStr)
-
-          if (Object.keys(algoTagsList).includes('beta')) {
-            return `${algo}@beta`
+          )
+          const typeSel: any = await inquirer.prompt(
+            [
+                {
+                    name: 'val',
+                    message: '选择项目品类',
+                    type: 'list',
+                    choices: types,
+                },
+            ]
+          )
+          language = languageSel.val
+          type = typeSel.val
+        }
+        {
+          const { body } = await got(`https://admin.iflyos.cn/api/v1/ai_resources/client/products?language=${language}&product_type=${type}`, {
+            headers: {
+              Authorization: `Bearer ${await cookie.getAccessToken()}`,
+            },
+            responseType: 'json'
+          })
+          const { products } = body as { products: Array<{
+            name: string;
+            versions: Array<string>;
+          }> }
+  
+          while(!algo) {
+            algo = await this.propAlgo(products)
           }
+  
         }
-
-        
-        const algoVersionSearchRes = await cmd('npm', ['view', algo, 'versions', config.get('lpmRc')])
-        const listStr = algoVersionSearchRes.stdout.split('\n').join('').replace(/'/g, '"');
-        let algoVersionList = JSON.parse(listStr)
-
-        algoVersionList = algoVersionList.filter((item: string) => item.match(/^([1-9]\d|[1-9])(\.([1-9]\d|\d)){2}$/))
-
-        algoVersionList = algoVersionList.sort(function(item1: any, item2: any) {
-          return compare(item2, item1)
-        })
-
-        let algoVersion = ''
-        const algoWrapVersion = config.get('createCacheFirmware')?.algoWrapVersion
-
-        for (let i = 0; i <= algoVersionList.length - 1; i++) {
-          const algoKeywordsSearchRes = await cmd('npm', ['view', `${algo}@${algoVersionList[i]}`, 'keywords', '--json', config.get('lpmRc')])
-          const listStr = algoKeywordsSearchRes.stdout.split('\n').join('').replace(/'/g, '"');
-          const algoKeywordsList = JSON.parse(listStr)
-          if (algoKeywordsList.includes(algoWrapVersion)) {
-            algoVersion = algoVersionList[i]
-            break
+      } else {
+        {
+          const algoSearchRes = await cmd('npm', ['search', '@algo', '--long', '--json', config.get('lpmRc')])
+          let algoList = JSON.parse(algoSearchRes.stdout)
+          if (algoList.length > 0) {
+            algoList = algoList.filter((algo: any) => algo.keywords.includes(config.get('createCacheFirmware').chip) && 
+              (config.get('createCacheFirmware')?.aiwrap ?
+                algo.keywords.includes('aiwrap') : !algo.keywords.includes('aiwrap')))
           }
+          const response: any = await inquirer.prompt(
+              [
+                  {
+                      name: 'algo',
+                      message: '选择算法模型',
+                      type: 'list',
+                      choices: algoList.map((bias: any) => bias.name),
+                  },
+              ]
+          )
+          algo = response.algo
         }
-
-        if (algoVersion) {
-          return `${algo}@~${algoVersion}`
-        }
-        console.log(`该算法包${algo}没有支持当前固件的版本，请选择其他算法包`)
-        return
       }
-    } catch (error) {
-      application.log(JSON.stringify(error))
-      return '@algo/csk4002-cae-mlp'
+
+      return algo
+
+    } catch(e) {
+      console.log(e)
     }
-    return '@algo/csk4002-cae-mlp'
+    
+    return ''
   }
 
   async getLSCloudProjectInfo() {
@@ -202,6 +220,60 @@ export class CliUx {
       project_id: id,
       project_name: name,
       license_key: license_key
+    }
+  }
+
+  async propAlgo(products: Array<{
+    name: string;
+    versions: Array<string>;
+  }>) {
+    const config = new Configstore('lisa')
+    const algoSel: any = await inquirer.prompt(
+      [
+          {
+              name: 'val',
+              message: '选择算法模型',
+              type: 'list',
+              choices: products.map((algo: any) => algo.name),
+          },
+      ]
+    )
+    const algo = algoSel.val
+    let versions = products.find(item => item.name === algo)?.versions || []
+
+    try {
+      if (UNPROD.includes(process.env.LISA_ENV || '')) {
+        if (Object.keys(versions).includes('beta')) {
+          return `${algo}@beta`
+        }
+      }
+
+      versions = versions.filter((item: string) => item.match(/^([1-9]\d|[1-9])(\.([1-9]\d|\d)){2}$/))
+      versions = versions.sort(function(item1: any, item2: any) {
+        return compare(item2, item1)
+      })
+
+      let algoVersion = ''
+      const algoWrapVersion = config.get('createCacheFirmware')?.algoWrapVersion
+      console.log(algoWrapVersion)
+      for (let i = 0; i <= versions.length - 1; i++) {
+        const algoKeywordsSearchRes = await cmd('npm', ['view', `${algo}@${versions[i]}`, 'keywords', '--json', config.get('lpmRc')])
+        const listStr = algoKeywordsSearchRes.stdout.split('\n').join('').replace(/'/g, '"');
+        const algoKeywordsList = JSON.parse(listStr)
+        if (algoKeywordsList.includes(algoWrapVersion)) {
+          algoVersion = versions[i]
+          break
+        }
+      }
+
+      if (algoVersion) {
+        return `${algo}@~${algoVersion}`
+      }
+      console.log(`该算法包${algo}没有支持当前固件的版本，请选择其他算法包`)
+      return ''
+    } catch (error) {
+      console.log(error.message)
+      return ''
     }
   }
 

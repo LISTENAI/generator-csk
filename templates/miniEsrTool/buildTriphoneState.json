@@ -1,0 +1,8 @@
+{
+    "buildTriphoneState": {
+		"keyword": "si2 liu4 du4|si2 qi1 du4|si2 ba1 du4|si2 jiu3 du4",
+		"triphone_bin": "./AIoT_dict/triphone_cn.bin",
+		"init_threshold": 400,
+		"out_dir": "./test"
+	}
+}
