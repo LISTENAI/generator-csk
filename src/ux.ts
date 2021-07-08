@@ -154,7 +154,7 @@ export class CliUx {
           type = typeSel.val
         }
         {
-          const { body } = await got(`https://admin.iflyos.cn/api/v1/ai_resources/client/products?language=${language}&product_type=${type}`, {
+          const { body } = await got(`https://admin.iflyos.cn/api/v1/ai_resources/client/products?language=${language}&product_type=${type}&tag=${UNPROD.includes(process.env.LISA_ENV || '') ? 'beta' : 'latest'}`, {
             headers: {
               Authorization: `Bearer ${await cookie.getAccessToken()}`,
             },

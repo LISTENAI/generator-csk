@@ -5,6 +5,7 @@ import cookie from './libs/cookie'
 import { initConfig } from './util/project-config'
 import { buildingFile, thresholdsFile } from './util/project-fs'
 import download from './util/download'
+import * as path from 'path'
 
 export default class InitAsr {
     _log: any;
@@ -149,16 +150,37 @@ export default class InitAsr {
 
             this._finish()
         } else {
+            const mlp = this._application.context?.algo?.esr_res?.name || undefined;
+            if (mlp) {
+                this._reqAsr(mlp, {
+                    mainWords,
+                    cmdWords,
+                })
+            } else {
+                this._triphoneAsr({
+                    mainWords,
+                    cmdWords,
+                })
+            }
             
-            this._reqAsr({
-                mainWords,
-                cmdWords,
-            })
         }
     }
 
-    async _reqAsr(data: { mainWords: any, cmdWords: any }) {
-        const mlp = this._application.context?.algo?.esr_res?.name || undefined;
+    async _triphoneAsr(data: { mainWords: any, cmdWords: any }) {
+        // "si2 liu4 du4|si2 qi1 du4|si2 ba1 du4|si2 jiu3 du4"
+        const mainKeyword = Array.prototype.map
+            .call(data.mainWords, word => word.pinyin)
+            .join('|')
+        const cmdKeyword = Array.prototype.map
+            .call(data.mainWords, word => word.pinyin)
+            .join('|')
+        await this._buildTriphoneState(mainKeyword, 'main.txt')
+        await this._buildTriphoneState(cmdKeyword, 'cmd.txt')
+
+        this._finish()
+    }
+
+    async _reqAsr(mlp: string, data: { mainWords: any, cmdWords: any }) {
         if (!mlp) {
             throw new Error('缺少esr_res资源名，请检查是否依赖了算法包或算法包是否正确')
         }
@@ -437,6 +459,23 @@ export default class InitAsr {
                 cwd: buildingFile(this._application),
                 timeout: 5000
             })
+        } else {
+            throw new Error('无法生成main.bin/cmd.bin资源文件，请重新install @generator/csk或咨询FAE')
+        }
+    }
+
+    async _buildTriphoneState(keyword: string, targetPath: string) {
+        const exe = this._application.context.cskBuild?.miniEsrTool.exe
+        if (exe && fs.existsSync(exe)) {
+            const targetJson = require(this._application.context.cskBuild?.miniEsrTool.triphoneState)
+            targetJson.buildTriphoneState.keyword = keyword
+            fs.writeFileSync(this._application.context.cskBuild?.miniEsrTool.triphoneState, targetJson)
+            this._application.log(`${exe} ${['buildTriphoneState', this._application.context.cskBuild?.miniEsrTool.triphoneState].join(' ')}`)
+            await cmd(exe, ['buildTriphoneState', this._application.context.cskBuild?.miniEsrTool.triphoneState], {
+                cwd: this._application.context.cskBuild?.miniEsrTool.root,
+                timeout: 5000
+            })
+            fs.copyFileSync(path.join(this._application.context.cskBuild?.miniEsrTool.root, 'keywordState/keywords.txt'), targetPath)
         } else {
             throw new Error('无法生成main.bin/cmd.bin资源文件，请重新install @generator/csk或咨询FAE')
         }
