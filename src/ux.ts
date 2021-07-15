@@ -259,10 +259,12 @@ export class CliUx {
       for (let i = 0; i <= versions.length - 1; i++) {
         const algoKeywordsSearchRes = await cmd('npm', ['view', `${algo}@${versions[i]}`, 'keywords', '--json', config.get('lpmRc')])
         const listStr = algoKeywordsSearchRes.stdout.split('\n').join('').replace(/'/g, '"');
-        const algoKeywordsList = JSON.parse(listStr)
-        if (algoKeywordsList.includes(algoWrapVersion)) {
-          algoVersion = versions[i]
-          break
+        if (listStr) {
+          const algoKeywordsList = JSON.parse(listStr)
+          if (algoKeywordsList.includes(algoWrapVersion)) {
+            algoVersion = versions[i]
+            break
+          }
         }
       }
 
