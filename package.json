@@ -1,6 +1,6 @@
 {
   "name": "@generator/csk",
-  "version": "1.3.4-beta.3",
+  "version": "1.3.4-beta.5",
   "description": "csk开发项目 Framework，包含生成器、以及build相关task",
   "author": "geekBoom.Zhao <zbzhao@listenai.com>",
   "license": "MIT",
@@ -27,6 +27,26 @@
     "taskPath": "./lib/task.js",
     "dependencies": [
       "@tool/optimize"
+    ],
+    "repository": [
+      {
+        "type": "github",
+        "url": "https://github.com/LISTENAI/generator-csk.git"
+      },
+      {
+        "type": "gitee",
+        "url": "https://gitee.com/listenai/generator-csk.git"
+      }
+    ],
+    "bugs": [
+      {
+        "type": "github",
+        "url": "https://github.com/LISTENAI/generator-csk/issues"
+      },
+      {
+        "type": "gitee",
+        "url": "https://gitee.com/listenai/generator-csk/issues"
+      }
     ]
   },
   "publishConfig": {

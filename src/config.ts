@@ -27,7 +27,7 @@ module.exports = ({application, fs, ...core} = lisa) => {
       releasePath: path.join(application.root, 'target/output/release'),
       factoryPath: path.join(application.root, 'target/output/factory'),
       miniEsrTool: {
-        root: path.join(__dirname, '../templates/'),
+        root: path.join(__dirname, '../templates/miniEsrTool/'),
         exe: path.join(__dirname, '../templates/miniEsrTool/mini_esr_tool_bridge.exe'),
         mainModelBin: path.join(__dirname, '../templates/miniEsrTool/mainModelBinCfg.json'),
         asrModelBin: path.join(__dirname, '../templates/miniEsrTool/asrModelBinCfg.json'),

@@ -240,29 +240,30 @@ export class CliUx {
     )
     const algo = algoSel.val
     let versions = products.find(item => item.name === algo)?.versions || []
-
     try {
-      if (UNPROD.includes(process.env.LISA_ENV || '')) {
-        if (Object.keys(versions).includes('beta')) {
-          return `${algo}@beta`
-        }
-      }
+      // if (UNPROD.includes(process.env.LISA_ENV || '')) {
+      //   if (Object.keys(versions).includes('beta')) {
+      //     return `${algo}@beta`
+      //   }
+      // }
 
-      versions = versions.filter((item: string) => item.match(/^([1-9]\d|[1-9])(\.([1-9]\d|\d)){2}$/))
-      versions = versions.sort(function(item1: any, item2: any) {
-        return compare(item2, item1)
-      })
+      // versions = versions.filter((item: string) => item.match(/^([1-9]\d|[1-9])(\.([1-9]\d|\d)){2}$/))
+      // versions = versions.sort(function(item1: any, item2: any) {
+      //   return compare(item2, item1)
+      // })
 
       let algoVersion = ''
       const algoWrapVersion = config.get('createCacheFirmware')?.algoWrapVersion
-      console.log(algoWrapVersion)
       for (let i = 0; i <= versions.length - 1; i++) {
         const algoKeywordsSearchRes = await cmd('npm', ['view', `${algo}@${versions[i]}`, 'keywords', '--json', config.get('lpmRc')])
         const listStr = algoKeywordsSearchRes.stdout.split('\n').join('').replace(/'/g, '"');
-        const algoKeywordsList = JSON.parse(listStr)
-        if (algoKeywordsList.includes(algoWrapVersion)) {
-          algoVersion = versions[i]
-          break
+        if (listStr) {
+          const algoKeywordsList = JSON.parse(listStr)
+          const hasAlgo = algoKeywordsList.find((item: string) => item.indexOf(algoWrapVersion) >= 0)
+          if (hasAlgo) {
+            algoVersion = versions[i]
+            break
+          }
         }
       }
 

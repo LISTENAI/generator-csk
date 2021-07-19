@@ -172,7 +172,7 @@ export default class InitAsr {
             .call(data.mainWords, word => word.pinyin)
             .join('|')
         const cmdKeyword = Array.prototype.map
-            .call(data.mainWords, word => word.pinyin)
+            .call(data.mainWords.concat(data.cmdWords), word => word.pinyin)
             .join('|')
         await this._buildTriphoneState(mainKeyword, 'main.txt')
         await this._buildTriphoneState(cmdKeyword, 'cmd.txt')
@@ -467,15 +467,16 @@ export default class InitAsr {
     async _buildTriphoneState(keyword: string, targetPath: string) {
         const exe = this._application.context.cskBuild?.miniEsrTool.exe
         if (exe && fs.existsSync(exe)) {
+            delete require.cache[require.resolve(this._application.context.cskBuild?.miniEsrTool.triphoneState)];
             const targetJson = require(this._application.context.cskBuild?.miniEsrTool.triphoneState)
             targetJson.buildTriphoneState.keyword = keyword
-            fs.writeFileSync(this._application.context.cskBuild?.miniEsrTool.triphoneState, targetJson)
+            fs.writeFileSync(this._application.context.cskBuild?.miniEsrTool.triphoneState, JSON.stringify(targetJson))
             this._application.log(`${exe} ${['buildTriphoneState', this._application.context.cskBuild?.miniEsrTool.triphoneState].join(' ')}`)
             await cmd(exe, ['buildTriphoneState', this._application.context.cskBuild?.miniEsrTool.triphoneState], {
                 cwd: this._application.context.cskBuild?.miniEsrTool.root,
                 timeout: 5000
             })
-            fs.copyFileSync(path.join(this._application.context.cskBuild?.miniEsrTool.root, 'keywordState/keywords.txt'), targetPath)
+            fs.copyFileSync(path.join(this._application.context.cskBuild?.miniEsrTool.root, 'keywordState/keywords.txt'), buildingFile(this._application, targetPath))
         } else {
             throw new Error('无法生成main.bin/cmd.bin资源文件，请重新install @generator/csk或咨询FAE')
         }
