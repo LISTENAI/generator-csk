@@ -1,0 +1,8 @@
+{
+    "buildTriphoneState": {
+		"keyword": "",
+		"triphone_bin": "./AIoT_dict/triphone_cn.bin",
+		"init_threshold": 500,
+		"out_dir": "./keywordState"
+	}
+}
