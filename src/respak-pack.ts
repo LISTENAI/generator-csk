@@ -1,7 +1,10 @@
-import {Application, fs} from '@listenai/lisa_core'
+import {Application} from '@listenai/lisa_core'
+import lisa from '@listenai/lisa_core'
 import * as crc from 'crc'
 import { initConfig } from './util/project-config'
 import { buildingFile } from './util/project-fs'
+
+const {fs} = lisa
 
 export default class Respak {
   _ctx: any;

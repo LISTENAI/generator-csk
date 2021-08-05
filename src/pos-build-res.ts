@@ -1,7 +1,9 @@
-import {Application, fs, cmd} from '@listenai/lisa_core'
-import * as lisa from '@listenai/lisa_core'
+import {Application} from '@listenai/lisa_core'
+import lisa from '@listenai/lisa_core'
 import * as path from 'path'
 import Respak from './util/respak'
+
+const {fs, cmd} = lisa
 
 export default class PosBuildRes {
   _ctx: any;

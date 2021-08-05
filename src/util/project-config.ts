@@ -1,8 +1,10 @@
-import * as path from 'path'
-import {Application, fs} from '@listenai/lisa_core'
-import { IcmdWord, Interact, InteractConfig, Itone, ItonesConfig, Tones, TomlConfig } from '../typings/data';
+import {Application} from '@listenai/lisa_core'
+import lisa from '@listenai/lisa_core'
+import { Interact, InteractConfig, ItonesConfig, Tones } from '../typings/data';
 import {configFile} from './project-fs'
 import tomlHandler from './toml-handler'
+
+const {fs} = lisa
 
 function initConfig(application: Application): any {
     let config: any = {}
@@ -161,6 +163,7 @@ function initConfig(application: Application): any {
 }
 
 function initApplication(application: Application): any {
+  const {fs} = lisa
   const applicationFile = configFile(application, 'application.lini')
   if (fs.existsSync(applicationFile)) {
     const applicationJson = tomlHandler.load(applicationFile)

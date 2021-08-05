@@ -1,4 +1,4 @@
-import {fs} from '@listenai/lisa_core'
+import lisa from '@listenai/lisa_core'
 import cli from 'cli-ux'
 
 async function download(res: {
@@ -8,6 +8,7 @@ async function download(res: {
     progress?: ((percentage: number, transferred: number, total: number) => void) | undefined;
     errCb?: (() => void) | undefined;
 }): Promise<boolean> {
+    const {fs} = lisa
     const downRes = await fs.project.downloadFile({
         url: res.uri, // 'https://cdn.iflyos.cn/public/lstudio/mlpDir/mlp.bin',
         fileName: res.name, //'esr.bin',

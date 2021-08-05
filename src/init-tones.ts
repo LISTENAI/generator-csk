@@ -1,4 +1,5 @@
-import { Application, fs, got } from '@listenai/lisa_core'
+import { Application } from '@listenai/lisa_core'
+import lisa from '@listenai/lisa_core'
 import { Itone } from './typings/data';
 import cookie from './libs/cookie'
 import { initConfig } from './util/project-config'
@@ -44,27 +45,27 @@ export default class InitTones {
         const tonesTts = this._pconfig.tones.tts || []
         const tonesInclude = this._pconfig.tones.include || []
     
-        if (!fs.existsSync(buildingFile(this._application, 'tones'))) {
-          await fs.mkdirp(buildingFile(this._application, 'tones'))
+        if (!lisa.fs.existsSync(buildingFile(this._application, 'tones'))) {
+          await lisa.fs.mkdirp(buildingFile(this._application, 'tones'))
         }
     
         tonesInclude.forEach((include: Itone) => {
           if (!include.text) {
-            fs.writeFileSync(buildingFile(this._application, `tones/${include.id}.mp3`), '')
+            lisa.fs.writeFileSync(buildingFile(this._application, `tones/${include.id}.mp3`), '')
           } else {
-            fs.copyFileSync(tonesIncludeFile(this._application, `${include.text}`), buildingFile(this._application, `tones/${include.id}.mp3`))
+            lisa.fs.copyFileSync(tonesIncludeFile(this._application, `${include.text}`), buildingFile(this._application, `tones/${include.id}.mp3`))
           }
         })
         this._application.log(`cacheDir: ${this._cacheDir}`)
         tonesTts.forEach((tts: Itone) => {
           if (!tts.text) {
-            fs.writeFileSync(buildingFile(this._application, `tones/${tts.id}.mp3`), '')
+            lisa.fs.writeFileSync(buildingFile(this._application, `tones/${tts.id}.mp3`), '')
           } else {
             let md5 = crypto.createHash('md5');
             let result = md5.update(`${tts.text}-${this._pconfig.speaker.vcn}-${this._pconfig.speaker.volume}-${this._pconfig.speaker.speed}`).digest('hex');
             const ttsFileName = `${result}.mp3`
-            if (fs.existsSync(path.join(this._cacheDir, ttsFileName))) {
-              fs.copyFileSync(path.join(this._cacheDir, ttsFileName), buildingFile(this._application, `tones/${tts.id}.mp3`))
+            if (lisa.fs.existsSync(path.join(this._cacheDir, ttsFileName))) {
+                lisa.fs.copyFileSync(path.join(this._cacheDir, ttsFileName), buildingFile(this._application, `tones/${tts.id}.mp3`))
             } else {
               tts.cacheName = ttsFileName
               this._tones.push(tts)
@@ -90,7 +91,7 @@ export default class InitTones {
                 },
             }
             try {
-                const { body } = await got.post(`${this._application.apiHost}${this._application.apiPrefix}${opt.url}`, {
+                const { body } = await lisa.got.post(`${this._application.apiHost}${this._application.apiPrefix}${opt.url}`, {
                     headers: {
                         Authorization: `Bearer ${await cookie.getAccessToken()}`,
                         'User-Agent': 'LStudio',
@@ -121,7 +122,7 @@ export default class InitTones {
                 this._log.output = `下载${tts.text}失败...开始重试...`
             }
         })
-        fs.copyFileSync(path.join(this._cacheDir, tts.cacheName || 'unknown'), buildingFile(this._application, `tones/${tts.id}.mp3`))
+        lisa.fs.copyFileSync(path.join(this._cacheDir, tts.cacheName || 'unknown'), buildingFile(this._application, `tones/${tts.id}.mp3`))
         this._tones.splice(0, 1)
         this._handleTones()
     }

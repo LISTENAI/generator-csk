@@ -1,11 +1,12 @@
-import * as lisa from '@listenai/lisa_core'
+import lisa from '@listenai/lisa_core'
+import {loadPackageJSON, load} from '@listenai/lisa_core'
 
 import * as path from 'path'
 import { CliUx } from './ux'
 import * as Configstore from 'configstore'
 
 import task from "./task"
-const { application, loadPackageJSON, runner } = lisa
+const { application, runner } = lisa
 
 // 功能在本方法中实现
 export async function main() {
@@ -41,7 +42,10 @@ export async function main() {
 }
 
 async function initElseDeps() {
-  const context = lisa.load().application.context
+  await Promise.all([
+    load()
+  ])
+  const context = application.context
   const aiwrap = context?.cskBuild?.respakList?.WRAP ? true : false
   const algoWrapVersion = context?.cskBuild?.algoWrapVersion ? `aiwrap@${context?.cskBuild?.algoWrapVersion}` : 'aiwrap@v1000.2.0.3'
   const config = new Configstore('lisa')

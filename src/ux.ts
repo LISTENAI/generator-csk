@@ -2,7 +2,8 @@
  * 和用户交互的界面，注意本代码必须经过自动化测试，不要想当然不写测试代码
  */
 
-import { application, cmd, flags, got } from '@listenai/lisa_core';
+import { flags } from '@listenai/lisa_core';
+import lisa from '@listenai/lisa_core';
 import cli from 'cli-ux'
 import * as path from 'path'
 import * as inquirer from 'inquirer'
@@ -12,6 +13,7 @@ import getLogToken from './util/getLogToken'
 import cookie from './libs/cookie'
 
 const UNPROD = ['dev', 'debug']
+const {cmd, got} = lisa
 
 export class CliUx {
 
@@ -239,24 +241,29 @@ export class CliUx {
       ]
     )
     const algo = algoSel.val
-    let versions = products.find(item => item.name === algo)?.versions || []
+    // let versions = products.find(item => item.name === algo)?.versions || []
     try {
-      let algoVersion = ''
+      let algoVersion: string | undefined = ''
       const algoWrapVersion = config.get('createCacheFirmware')?.algoWrapVersion
-      for (let i = 0; i <= versions.length - 1; i++) {
-        const algoKeywordsSearchRes = await cmd('npm', ['view', `${algo}@${versions[i]}`, 'keywords', '--json', config.get('lpmRc')])
-        const listStr = algoKeywordsSearchRes.stdout.split('\n').join('').replace(/'/g, '"');
-        if (listStr) {
-          const algoKeywordsList = JSON.parse(listStr)
-          const hasAlgo = algoKeywordsList.find((item: string) => item.indexOf(algoWrapVersion) >= 0)
-          if (hasAlgo) {
-            algoVersion = versions[i]
-            break
-          }
-        }
+      const { body } = await got.post(`https://web-lpm.listenai.com/cloud/packages/advanceSearch`, {
+        json: {
+          name: algo,
+          keywords: [algoWrapVersion]
+        },
+        responseType: 'json'
+      })
+      const { result } = body as { result: Array<{
+        name: string;
+        version: string;
+        keywords: Array<string>;
+      }> }
+      if (!UNPROD.includes(process.env.LISA_ENV || '')) {
+        algoVersion = result.find(item => item.version.match(/^([1-9]\d|[1-9])(\.([1-9]\d|\d)){2}$/))?.version
+      } else {
+        algoVersion = result.find(item => !item.version.match(/^([1-9]\d|[1-9])(\.([1-9]\d|\d)){2}$/))?.version
       }
-
       if (algoVersion) {
+        lisa.application.debug(`${algo}@~${algoVersion}`)
         return `${algo}@~${algoVersion}`
       }
       console.log(`该算法包${algo}没有支持当前固件的版本，请选择其他算法包`)

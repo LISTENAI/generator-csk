@@ -1,4 +1,5 @@
-import * as lisa from '@listenai/lisa_core'
+import lisa from '@listenai/lisa_core'
+import {loadPackageJSON, TaskObject} from '@listenai/lisa_core'
 import cli from 'cli-ux'
 import * as path from 'path'
 import PreBuildRes from './pre-build-res'
@@ -9,7 +10,7 @@ import { CliUx } from './ux'
 import respak from './tasks/respak'
 
 export default (core = lisa) => {
-  const {job, fs, application, loadPackageJSON, Tasks} = core
+  const {job, fs, application, Tasks} = core
   respak(core)
   job('generate:create', {
     title: '创建csk开发项目目录/文件',
@@ -239,7 +240,7 @@ export default (core = lisa) => {
         return task
       })))
 
-      const _tasks: lisa.TaskObject[] = []
+      const _tasks: TaskObject[] = []
       tasks.forEach(task => {
         if (application.tasks.hasOwnProperty(task)) {
           _tasks.push(application.tasks[task])

@@ -1,5 +1,7 @@
-import {fs} from '@listenai/lisa_core'
+import lisa from '@listenai/lisa_core'
 import * as TOML from '@iarna/toml'
+
+const {fs} = lisa
 
 const tomlHandler =  {
   parse: (file: string) => {

@@ -1,8 +1,11 @@
-import { Application, fs } from '@listenai/lisa_core'
+import { Application } from '@listenai/lisa_core'
+import lisa from '@listenai/lisa_core'
 import * as path from 'path'
 import { IcmdWord, Interact, InteractConfig, Itone, ItonesConfig, Tones, TomlConfig } from './typings/data';
 import tomlHandler from './util/toml-handler'
 import cookie from './libs/cookie'
+
+const {fs} = lisa 
 
 export default class PreBuildRes {
   _ctx: any;
