@@ -1,4 +1,5 @@
-import {Application, fs} from '@listenai/lisa_core'
+import {Application} from '@listenai/lisa_core'
+import lisa from '@listenai/lisa_core'
 import * as path from 'path'
 import { KeyOType } from './typings/data';
 import dateFormat from './util/dateFormat'
@@ -14,7 +15,7 @@ export default class PackageLpk {
   }
 
   async start() {
-    const _zip = fs.project.zip()
+    const _zip = lisa.fs.project.zip()
     const manifest = await this.getManifest(_zip);
     _zip.addFile(
       'manifest.json',
@@ -38,7 +39,7 @@ export default class PackageLpk {
       images: {},
     }
     this._application.log(this._getPartsPath('flashboot.bin'))
-    if (!fs.existsSync(this._getPartsPath('flashboot.bin'))) {
+    if (!lisa.fs.existsSync(this._getPartsPath('flashboot.bin'))) {
       // this.error('缺少固件的必要产品:flashboot.bin')
       throw new Error('缺少固件的必要产品:flashboot.bin')
     } else {
@@ -51,7 +52,7 @@ export default class PackageLpk {
       }
       _zip.addLocalFile(this._getPartsPath('flashboot.bin'), 'images')
     }
-    if (!fs.existsSync(this._getPartsPath('master.bin'))) {
+    if (!lisa.fs.existsSync(this._getPartsPath('master.bin'))) {
       // this.error('缺少固件的必要产品:master.bin')
       throw new Error('缺少固件的必要产品:master.bin')
     } else {
@@ -70,7 +71,7 @@ export default class PackageLpk {
       }
       _zip.addLocalFile(this._getPartsPath('master.bin'), 'images')
     }
-    if (fs.existsSync(this._getPartsPath('script.bin'))) {
+    if (lisa.fs.existsSync(this._getPartsPath('script.bin'))) {
       const scriptInfo = await this.binInfo(this._getPartsPath('script.bin'));
       (manifest.images as KeyOType).script = {
         addr: '0xf0000',
@@ -80,7 +81,7 @@ export default class PackageLpk {
       }
       _zip.addLocalFile(this._getPartsPath('script.bin'), 'images')
     }
-    if (!fs.existsSync(this._getPartsPath('respak.bin'))) {
+    if (!lisa.fs.existsSync(this._getPartsPath('respak.bin'))) {
       throw new Error('缺少固件的必要产品:respak.bin')
       // this.error('缺少固件的必要产品:respak.bin')
     } else {
@@ -98,8 +99,8 @@ export default class PackageLpk {
 
   async binInfo(file: string, str?: string) {
     var info: {[key: string]: any} = {}
-    var buffer = fs.readFileSync(file);
-    var size = fs.statSync(file).size;
+    var buffer = lisa.fs.readFileSync(file);
+    var size = lisa.fs.statSync(file).size;
     var fsHash = crypto.createHash('md5');
 
     fsHash.update(buffer);
@@ -123,13 +124,13 @@ export default class PackageLpk {
   }
 
   async release() {
-    const _zip = fs.project.zip()
+    const _zip = lisa.fs.project.zip()
     _zip.addLocalFile(this._getDebugLpkPath('burner.lpk'))
     _zip.writeZip(this._getReleasePath('release.zip'))
   }
 
   async factory(projectInfo: {[key: string]: any}) {
-    const _zip = fs.project.zip()
+    const _zip = lisa.fs.project.zip()
     const manifest = await this.getManifest(_zip)
     manifest.project_id = projectInfo.project_id
     manifest.project_name = projectInfo.project_name

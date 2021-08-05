@@ -1,7 +1,9 @@
 /**
  * 移动到core之中
  */
-import { fs } from '@listenai/lisa_core'
+import lisa from '@listenai/lisa_core'
+
+const { fs } = lisa
 
 export async function mockArgv(args: any, func: any) {
   if (typeof args === 'function') {

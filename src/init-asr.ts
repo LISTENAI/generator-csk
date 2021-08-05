@@ -1,4 +1,5 @@
-import { Application, fs, got, cmd } from '@listenai/lisa_core'
+import lisa from '@listenai/lisa_core'
+import {Application} from '@listenai/lisa_core'
 import { IcmdWord, TomlConfig } from './typings/data';
 import tomlHandler from './util/toml-handler'
 import cookie from './libs/cookie'
@@ -28,15 +29,15 @@ export default class InitAsr {
 
         this._finishResolver = finishResolver
 
-        fs.removeSync(buildingFile(this._application, 'cmd.txt'))
-        fs.removeSync(buildingFile(this._application, 'cmd_finaly.txt'))
-        fs.removeSync(buildingFile(this._application, 'cmd_train.txt'))
-        fs.removeSync(buildingFile(this._application, 'cmd.bin'))
+        lisa.fs.removeSync(buildingFile(this._application, 'cmd.txt'))
+        lisa.fs.removeSync(buildingFile(this._application, 'cmd_finaly.txt'))
+        lisa.fs.removeSync(buildingFile(this._application, 'cmd_train.txt'))
+        lisa.fs.removeSync(buildingFile(this._application, 'cmd.bin'))
 
-        fs.removeSync(buildingFile(this._application, 'main.txt'))
-        fs.removeSync(buildingFile(this._application, 'main_finaly.txt'))
-        fs.removeSync(buildingFile(this._application, 'main_train.txt'))
-        fs.removeSync(buildingFile(this._application, 'main.bin'))
+        lisa.fs.removeSync(buildingFile(this._application, 'main.txt'))
+        lisa.fs.removeSync(buildingFile(this._application, 'main_finaly.txt'))
+        lisa.fs.removeSync(buildingFile(this._application, 'main_train.txt'))
+        lisa.fs.removeSync(buildingFile(this._application, 'main.bin'))
         
         this._pconfig = initConfig(this._application)
 
@@ -47,8 +48,8 @@ export default class InitAsr {
 
     _thresholdJson(fileName: string) {
         const thresholdJson: any = {}
-        if (fs.existsSync(thresholdsFile(this._application, fileName))) {
-            const wordsThresholdStr = fs.readFileSync(thresholdsFile(this._application, fileName)).toString()
+        if (lisa.fs.existsSync(thresholdsFile(this._application, fileName))) {
+            const wordsThresholdStr = lisa.fs.readFileSync(thresholdsFile(this._application, fileName)).toString()
             const wordsThreshold = wordsThresholdStr.split('\r').join('').split('\n').filter(val => val !== '')
             wordsThreshold.forEach(threshold => {
                 const thresholdArr = threshold.split(',')
@@ -77,7 +78,7 @@ export default class InitAsr {
                 pinyin: item.pinyin,
             })
         })
-        fs.writeFileSync(buildingFile(this._application, 'main.toml'), tomlHandler.stringify(mainToml))
+        lisa.fs.writeFileSync(buildingFile(this._application, 'main.toml'), tomlHandler.stringify(mainToml))
     }
 
     _initAsr() {
@@ -139,14 +140,14 @@ export default class InitAsr {
             const mainTxt = mainTxtArr.join('\n')
             const cmdTxt = cmdTxtArr.join('\n')
 
-            fs.writeFileSync(buildingFile(this._application, 'main.txt'), mainTxt)
-            fs.writeFileSync(buildingFile(this._application, 'cmd.txt'), `${mainTxt}\n${cmdTxt}`)
+            lisa.fs.writeFileSync(buildingFile(this._application, 'main.txt'), mainTxt)
+            lisa.fs.writeFileSync(buildingFile(this._application, 'cmd.txt'), `${mainTxt}\n${cmdTxt}`)
 
             const mainTrainTxt = mainTrainTxtArr.join('\n')
             const cmdTrainTxt = cmdTrainTxtArr.join('\n')
 
-            fs.writeFileSync(buildingFile(this._application, 'main_train.txt'), mainTrainTxt)
-            fs.writeFileSync(buildingFile(this._application, 'cmd_train.txt'), `${mainTrainTxt}\n${cmdTrainTxt}`)
+            lisa.fs.writeFileSync(buildingFile(this._application, 'main_train.txt'), mainTrainTxt)
+            lisa.fs.writeFileSync(buildingFile(this._application, 'cmd_train.txt'), `${mainTrainTxt}\n${cmdTrainTxt}`)
 
             this._finish()
         } else {
@@ -184,7 +185,8 @@ export default class InitAsr {
         if (!mlp) {
             throw new Error('缺少esr_res资源名，请检查是否依赖了算法包或算法包是否正确')
         }
-        const miniEsrVersion = mlp === 'automl_3kword.priaux' ? 1266 :( mlp.split('_')[1] || 1266)
+        // const miniEsrVersion = mlp === 'automl_3kword.priaux' ? 1266 :( mlp.split('_')[1] || 1266)
+        const miniEsrVersion = Number(this._application.context?.algo?.esr_res?.version || 1266);
         this._asrRes = {
             taskId: '',
             urls: [],
@@ -221,7 +223,7 @@ export default class InitAsr {
         this._application.log('冲击的参数:\n')
         this._application.log(`${JSON.stringify(opt)}\n`)
         try {
-            const { body } = await got.post(`${this._application.apiHost}${this._application.apiPrefix}${opt.url}`, {
+            const { body } = await lisa.got.post(`${this._application.apiHost}${this._application.apiPrefix}${opt.url}`, {
                 headers: {
                     Authorization: `Bearer ${await cookie.getAccessToken()}`,
                     'User-Agent': 'LStudio',
@@ -262,7 +264,7 @@ export default class InitAsr {
         }
 
         try {
-            const { body } = await got.post(`${this._application.apiHost}${this._application.apiPrefix}${opt.url}`, {
+            const { body } = await lisa.got.post(`${this._application.apiHost}${this._application.apiPrefix}${opt.url}`, {
                 headers: {
                     Authorization: `Bearer ${await cookie.getAccessToken()}`,
                     'User-Agent': 'LStudio',
@@ -368,26 +370,26 @@ export default class InitAsr {
         // building里的阈值文件
         const buildingTxtFile = buildingFile(this._application, `${fileName}.txt`)
         let buildingThreshold: string[] = []
-        if (fs.existsSync(buildingTxtFile)) {
-            buildingThreshold = fs.readFileSync(buildingTxtFile).toString().split('\r').join('').split('\n').filter(val => val !== '')
+        if (lisa.fs.existsSync(buildingTxtFile)) {
+            buildingThreshold = lisa.fs.readFileSync(buildingTxtFile).toString().split('\r').join('').split('\n').filter(val => val !== '')
         }
         
         // @algo包的阈值文件
         const algoConfig = this._application.context?.algo || {}
         const algoTxtFile = algoConfig[`${fileName}_txt`] || ''
         let algoThreshold: string[] = []
-        if (algoTxtFile && fs.existsSync(algoTxtFile)) {
-            algoThreshold = fs.readFileSync(algoTxtFile).toString().split('\r').join('').split('\n').filter(val => val !== '')
+        if (algoTxtFile && lisa.fs.existsSync(algoTxtFile)) {
+            algoThreshold = lisa.fs.readFileSync(algoTxtFile).toString().split('\r').join('').split('\n').filter(val => val !== '')
         }
 
         // 项目里的阈值文件
         let thresholdTxtFile = thresholdsFile(this._application, `${fileName}_finaly.txt`)
-        if (!fs.existsSync(thresholdTxtFile)) {
+        if (!lisa.fs.existsSync(thresholdTxtFile)) {
             thresholdTxtFile = thresholdsFile(this._application, `${fileName}.txt`)
         }
         let projectThreshold: string[] = []
-        if (fs.existsSync(thresholdTxtFile)) {
-            projectThreshold = fs.readFileSync(thresholdTxtFile).toString().split('\r').join('').split('\n').filter(val => val !== '')
+        if (lisa.fs.existsSync(thresholdTxtFile)) {
+            projectThreshold = lisa.fs.readFileSync(thresholdTxtFile).toString().split('\r').join('').split('\n').filter(val => val !== '')
         }
 
         // 逻辑：根据词，找阈值，顺序为：项目里的阈值文件 > @algo包的阈值文件 > building里的阈值文件
@@ -439,23 +441,23 @@ export default class InitAsr {
         })
 
         // 保存到building
-        fs.writeFileSync(buildingTxtFile, baseTxtArr.join('\n'))
+        lisa.fs.writeFileSync(buildingTxtFile, baseTxtArr.join('\n'))
 
-        if (!fs.existsSync(buildingFile(this._application, `${fileName}_train.txt`))) {
-            fs.copyFileSync(buildingTxtFile, buildingFile(this._application, `${fileName}_train.txt`))
+        if (!lisa.fs.existsSync(buildingFile(this._application, `${fileName}_train.txt`))) {
+            lisa.fs.copyFileSync(buildingTxtFile, buildingFile(this._application, `${fileName}_train.txt`))
         }
     }
 
     async _buildMainCmdBin() {
         const exe = this._application.context.cskBuild?.miniEsrTool.exe
-        if (exe && fs.existsSync(exe)) {
+        if (exe && lisa.fs.existsSync(exe)) {
             this._application.log(`${exe} ${['buildLanguageModel', this._application.context.cskBuild?.miniEsrTool.mainModelBin].join(' ')}`)
-            await cmd(exe, ['buildLanguageModel', this._application.context.cskBuild?.miniEsrTool.mainModelBin], {
+            await lisa.cmd(exe, ['buildLanguageModel', this._application.context.cskBuild?.miniEsrTool.mainModelBin], {
                 cwd: buildingFile(this._application),
                 timeout: 5000
             })
             this._application.log(`${exe} ${['buildLanguageModel', this._application.context.cskBuild?.miniEsrTool.asrModelBin].join(' ')}`)
-            await cmd(exe, ['buildLanguageModel', this._application.context.cskBuild?.miniEsrTool.asrModelBin], {
+            await lisa.cmd(exe, ['buildLanguageModel', this._application.context.cskBuild?.miniEsrTool.asrModelBin], {
                 cwd: buildingFile(this._application),
                 timeout: 5000
             })
@@ -466,28 +468,28 @@ export default class InitAsr {
 
     async _buildTriphoneState(keyword: string, targetPath: string) {
         const exe = this._application.context.cskBuild?.miniEsrTool.exe
-        if (exe && fs.existsSync(exe)) {
+        if (exe && lisa.fs.existsSync(exe)) {
             delete require.cache[require.resolve(this._application.context.cskBuild?.miniEsrTool.triphoneState)];
             const targetJson = require(this._application.context.cskBuild?.miniEsrTool.triphoneState)
             targetJson.buildTriphoneState.keyword = keyword
-            fs.writeFileSync(this._application.context.cskBuild?.miniEsrTool.triphoneState, JSON.stringify(targetJson))
+            lisa.fs.writeFileSync(this._application.context.cskBuild?.miniEsrTool.triphoneState, JSON.stringify(targetJson))
             this._application.log(`${exe} ${['buildTriphoneState', this._application.context.cskBuild?.miniEsrTool.triphoneState].join(' ')}`)
-            await cmd(exe, ['buildTriphoneState', this._application.context.cskBuild?.miniEsrTool.triphoneState], {
+            await lisa.cmd(exe, ['buildTriphoneState', this._application.context.cskBuild?.miniEsrTool.triphoneState], {
                 cwd: this._application.context.cskBuild?.miniEsrTool.root,
                 timeout: 5000
             })
-            fs.copyFileSync(path.join(this._application.context.cskBuild?.miniEsrTool.root, 'keywordState/keywords.txt'), buildingFile(this._application, targetPath))
+            lisa.fs.copyFileSync(path.join(this._application.context.cskBuild?.miniEsrTool.root, 'keywordState/keywords.txt'), buildingFile(this._application, targetPath))
         } else {
             throw new Error('无法生成main.bin/cmd.bin资源文件，请重新install @generator/csk或咨询FAE')
         }
     }
 
     _finishCopy(type: string) {
-        fs.copyFileSync(buildingFile(this._application, `${type}.txt`), buildingFile(this._application, `${type}_finaly.txt`))
+        lisa.fs.copyFileSync(buildingFile(this._application, `${type}.txt`), buildingFile(this._application, `${type}_finaly.txt`))
 
-        fs.copyFileSync(buildingFile(this._application, `${type}.txt`), thresholdsFile(this._application, `${type}.txt`))
-        fs.copyFileSync(buildingFile(this._application, `${type}_finaly.txt`), thresholdsFile(this._application, `${type}_finaly.txt`))
-        fs.copyFileSync(buildingFile(this._application, `${type}_train.txt`), thresholdsFile(this._application, `${type}_train.txt`))
+        lisa.fs.copyFileSync(buildingFile(this._application, `${type}.txt`), thresholdsFile(this._application, `${type}.txt`))
+        lisa.fs.copyFileSync(buildingFile(this._application, `${type}_finaly.txt`), thresholdsFile(this._application, `${type}_finaly.txt`))
+        lisa.fs.copyFileSync(buildingFile(this._application, `${type}_train.txt`), thresholdsFile(this._application, `${type}_train.txt`))
     }
 }
 

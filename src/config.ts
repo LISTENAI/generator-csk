@@ -1,7 +1,9 @@
-import * as lisa from '@listenai/lisa_core'
+import lisa from '@listenai/lisa_core'
 import * as path from 'path'
 
-module.exports = ({application, fs, ...core} = lisa) => {
+module.exports = (core = lisa) => {
+  const {application} = core
+
   application.configuration(config => {
 
     if (config.context?.cskBuild?.respakList) {

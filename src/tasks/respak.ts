@@ -1,4 +1,4 @@
-import * as lisa from '@listenai/lisa_core'
+import lisa from '@listenai/lisa_core'
 import * as path from 'path'
 import { buildingFile, aliasFile, configFile } from '../util/project-fs'
 import download from '../util/download'

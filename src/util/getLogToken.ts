@@ -1,7 +1,8 @@
-import {got} from '@listenai/lisa_core'
+import lisa from '@listenai/lisa_core'
 import cookie from '../libs/cookie'
 
 async function getLogToken(id: number | string) {
+  const {got} = lisa
   try {
     const { body } = await got.post(`https://api.iflyos.cn/external/ls_log/client/get_token`, {
       headers: {

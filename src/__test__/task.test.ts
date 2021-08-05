@@ -1,6 +1,5 @@
 import task from '../task'
-import * as lisa from '@listenai/lisa_core'
-import * as path from 'path'
+import lisa from '@listenai/lisa_core'
 import "./test_helper"
 
 test('lisa_template_generate:init_project', async () => {
