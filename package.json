@@ -1,6 +1,6 @@
 {
   "name": "@generator/csk",
-  "version": "2.0.0",
+  "version": "2.0.4",
   "description": "csk开发项目 Framework，包含生成器、以及build相关task",
   "author": "geekBoom.Zhao <zbzhao@listenai.com>",
   "license": "MIT",

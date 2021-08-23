@@ -5,13 +5,6 @@ module.exports = (core = lisa) => {
   const {application} = core
 
   application.configuration(config => {
-
-    if (config.context?.cskBuild?.respakList) {
-      config.pipeline.build.tasks = ['build:patch', 'build:source', 'build:pre_respak', 'build:newrespak', 'build:package']
-    } else {
-      config.pipeline.build.tasks = ['build:patch', 'build:source', 'build:pre_respak', 'build:respak', 'build:package']
-    }
-
     // cskBuild的相关路径配置
     config.addContext('cskBuild', {
       appDir: path.join(application.root, 'app'),

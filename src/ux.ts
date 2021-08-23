@@ -13,7 +13,7 @@ import getLogToken from './util/getLogToken'
 import cookie from './libs/cookie'
 
 const UNPROD = ['dev', 'debug']
-const {cmd, got} = lisa
+const {cmd, got, application} = lisa
 
 export class CliUx {
 
@@ -35,7 +35,7 @@ export class CliUx {
     }
     const config = new Configstore('lisa')
     try {
-      const sourceSearchRes = await cmd('npm', ['search', '@source/csk', '--long', '--json', config.get('lpmRc')])
+      const sourceSearchRes = await cmd('npm', ['search', '@source/csk', '--long', '--json', `--registry=${application.registryUrl}`])
       let sourceList = JSON.parse(sourceSearchRes.stdout)
       if (sourceList.length > 0) {
         const response: any = await inquirer.prompt(
@@ -55,7 +55,7 @@ export class CliUx {
     }
     if (firmware.chip) {
       try {
-        const firmwareVersionSearchRes = await cmd('npm', ['view', firmware.chip, 'versions', config.get('lpmRc')])
+        const firmwareVersionSearchRes = await cmd('npm', ['view', firmware.chip, 'versions', `--registry=${application.registryUrl}`])
         const listStr = firmwareVersionSearchRes.stdout.split('\n').join('').replace(/'/g, '"');
         let firmwareVersionList = JSON.parse(listStr)
 
@@ -94,7 +94,7 @@ export class CliUx {
   async getBoard() {
     const config = new Configstore('lisa')
     try {
-      const boardSearchRes = await cmd('npm', ['search', '@board', '--long', '--json', config.get('lpmRc')])
+      const boardSearchRes = await cmd('npm', ['search', '@board', '--long', '--json', `--registry=${application.registryUrl}`])
       let boardList = JSON.parse(boardSearchRes.stdout)
       if (boardList.length > 0) {
         boardList = boardList.filter((algo: any) => algo.keywords.includes(config.get('createCacheFirmware').chip))
@@ -174,7 +174,7 @@ export class CliUx {
         }
       } else {
         {
-          const algoSearchRes = await cmd('npm', ['search', '@algo', '--long', '--json', config.get('lpmRc')])
+          const algoSearchRes = await cmd('npm', ['search', '@algo', '--long', '--json', `--registry=${application.registryUrl}`])
           let algoList = JSON.parse(algoSearchRes.stdout)
           if (algoList.length > 0) {
             algoList = algoList.filter((algo: any) => algo.keywords.includes(config.get('createCacheFirmware').chip) && 

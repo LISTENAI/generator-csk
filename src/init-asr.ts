@@ -85,15 +85,22 @@ export default class InitAsr {
         // 新增判断，是否需要冲击训练
         const mainWords: IcmdWord[] = this._pconfig.wakeup
         const cmdWords: IcmdWord[] = this._pconfig.cmds
-
+        this._application.log(`mainwords: ${JSON.stringify(mainWords)}`)
+        this._application.log(`cmdWords: ${JSON.stringify(cmdWords)}`)
         // write mainToml
         this._writeMainToml(mainWords, cmdWords)
         
+        // 必须有finaly和train，不然就会去冲击了
         const wordsThresholdJson: any = this._thresholdJson('main_finaly.txt')
         const wordsTrainThresholdJson: any = this._thresholdJson('main_train.txt')
         const cmdsThresholdJson: any = this._thresholdJson('cmd_finaly.txt')
         const cmdsTrainThresholdJson: any = this._thresholdJson('cmd_train.txt')
         
+        this._application.log(JSON.stringify(wordsThresholdJson))
+        this._application.log(JSON.stringify(wordsTrainThresholdJson))
+        this._application.log(JSON.stringify(cmdsThresholdJson))
+        this._application.log(JSON.stringify(cmdsTrainThresholdJson))
+
         let allHas = true
 
         const mainTxtArr = []
@@ -101,18 +108,22 @@ export default class InitAsr {
         if (allHas) {
             for (let i = 0; i <= mainWords.length - 1; i++) {
                 const wakeup = mainWords[i]
+                this._application.log(JSON.stringify(wakeup))
+                
                 if (wordsTrainThresholdJson[wakeup.pinyin]) {
                     mainTrainTxtArr.push(wordsTrainThresholdJson[wakeup.pinyin])
                 } else {
                     allHas = false
                     break
                 }
+                this._application.log(`${allHas}`)
                 if (wordsThresholdJson[wakeup.pinyin]) {
                     mainTxtArr.push(wordsThresholdJson[wakeup.pinyin])
                 } else {
                     allHas = false
                     break
                 }
+                this._application.log(`${allHas}`)
             }
         }
 
@@ -121,20 +132,25 @@ export default class InitAsr {
         if (allHas) {
             for (let i = 0; i <= cmdWords.length - 1; i++) {
                 const cmd = cmdWords[i]
+                this._application.log(JSON.stringify(cmd))
                 if (cmdsTrainThresholdJson[cmd.pinyin]) {
                     cmdTrainTxtArr.push(cmdsTrainThresholdJson[cmd.pinyin])
                 } else {
                     allHas = false
                     break
                 }
+                this._application.log(`${allHas}`)
                 if (cmdsThresholdJson[cmd.pinyin]) {
                     cmdTxtArr.push(cmdsThresholdJson[cmd.pinyin])
                 } else {
                     allHas = false
                     break
                 }
+                this._application.log(`${allHas}`)
             }
         }
+
+        this._application.log(`最后:${allHas}`)
 
         if (allHas) {
             const mainTxt = mainTxtArr.join('\n')
@@ -234,8 +250,15 @@ export default class InitAsr {
             this._asrRes.taskId = (body as any).data.taskid
             await this._handleAsr()
         } catch (error) {
-            this._application.log(JSON.stringify(error.response))
-            throw new Error('云端冲击失败，请查看.lisa/exce.log文件查看错误信息')
+            this._triphoneAsr({
+                mainWords: data.mainWords,
+                cmdWords: data.cmdWords,
+            })
+            this._application.debug(error?.response?.body)
+            if (error?.response?.body) {
+                this._application.log(JSON.stringify(error?.response?.body))
+            }
+            // throw new Error('云端冲击失败，请查看.lisa/exce.log文件查看错误信息')
         }
     }
 
@@ -351,9 +374,11 @@ export default class InitAsr {
     }
 
     async _finish() {
+        this._application.log('_finish ----------------->')
         await this._handleWordsThreshold('main')
         await this._handleWordsThreshold('cmd')
 
+        this._application.log('_finish copy------->')
         // 重新生成main_finaly/cmd_finaly.txt
         this._finishCopy('cmd')
         this._finishCopy('main')
@@ -376,7 +401,8 @@ export default class InitAsr {
         
         // @algo包的阈值文件
         const algoConfig = this._application.context?.algo || {}
-        const algoTxtFile = algoConfig[`${fileName}_txt`] || ''
+        const algoTxtFile = algoConfig[`${fileName}_txt`]?.file_path || ''
+        this._application.log(`--->${algoTxtFile}`)
         let algoThreshold: string[] = []
         if (algoTxtFile && lisa.fs.existsSync(algoTxtFile)) {
             algoThreshold = lisa.fs.readFileSync(algoTxtFile).toString().split('\r').join('').split('\n').filter(val => val !== '')

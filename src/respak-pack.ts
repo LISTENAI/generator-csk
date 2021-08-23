@@ -3,6 +3,7 @@ import lisa from '@listenai/lisa_core'
 import * as crc from 'crc'
 import { initConfig } from './util/project-config'
 import { buildingFile } from './util/project-fs'
+import RespakList from './util/respakList'
 
 const {fs} = lisa
 
@@ -20,6 +21,7 @@ export default class Respak {
   }
 
   async start() {
+    this._ctx.respakList = this._ctx.respakList || RespakList()
     this._pconfig = initConfig(this._application)
     const res = this._allResources()
     this._packageFw(res)

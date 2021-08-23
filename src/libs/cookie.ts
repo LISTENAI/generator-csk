@@ -5,7 +5,7 @@ import * as Configstore from 'configstore'
 const cookie = {
   getAccessToken: async () => {
     const config = new Configstore('lisa')
-    return (config.get('lisaUserInfo') || {}).accessToken
+    return (config.get('userInfo') || {}).accessToken || (config.get('lisaUserInfo') || {}).accessToken
   },
   get: async (key: string) => {
     const cookiePath = path.join(process.env.ListenAiCachePath || '', 'cookie', 'cookie')

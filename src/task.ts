@@ -6,6 +6,7 @@ import PreBuildRes from './pre-build-res'
 import PosBuildRes from './pos-build-res'
 import PackageLpk from './package-lpk'
 import { CliUx } from './ux'
+import RespakList from './util/respakList'
 
 import respak from './tasks/respak'
 
@@ -85,182 +86,141 @@ export default (core = lisa) => {
     title: '编译respak.bin',
     task: async (ctx, task) => {
 
-      let respakList: {
-        [key: string]: string
-      } = {
-        'INFO': 'resv.txt',
-        'BIAS': 'bias.bin',
-        'MLPR': 'mlp.bin',
-        'KEY1': 'main.bin',
-        'KEY2': 'cmd.bin',
-        'KMAP': 'keywords.txt',
-        'TEST': '1KHz.mp3',
-        'R007': 'resv.txt',
-        'R008': 'hardware.json',
-        'R009': 'application.json',
-      }
 
-      if (application.context.algo) {
-        respakList = {
+      if (application.context?.cskBuild?.respakList) {
+  
+        const targetRespakList: {[key: string]: string} = RespakList()
+        ctx.respakList = targetRespakList
+  
+        const tasks = Array.from(new Set(Object.values(targetRespakList).map(item => {
+          let task = 'respak:'
+          switch(item) {
+            case 'info.txt':
+              task += 'info'
+              break
+            case 'resv.txt':
+              task += 'resv'
+              break
+            case 'cae.bin':
+              task += 'cae'
+              break
+            case 'esr.bin':
+              task += 'esr'
+              break
+            case 'main.bin':
+            case 'cmd.bin':
+              task += 'language'
+              break
+            case 'wakelist.txt':
+              task += 'wakelist'
+              break
+            case 'wrap.json':
+              task += 'wrap'
+              break
+            case 'keywords.txt':
+              task += 'keywords'
+              break
+            case 'hardware.json':
+              task += 'hardware'
+              break
+            case 'application.json':
+              task += 'application'
+              break
+            case 'test.mp3':
+              task += 'test'
+              break
+            default:
+              task += 'resv'
+              break
+          }
+          return task
+        })))
+  
+        const _tasks: TaskObject[] = []
+        tasks.forEach(task => {
+          if (application.tasks.hasOwnProperty(task)) {
+            _tasks.push(application.tasks[task])
+          }
+        });
+  
+        if (application.tasks.hasOwnProperty('respak:tones')) {
+          _tasks.push(application.tasks['respak:tones'])
+        }
+  
+        return new Tasks([{
+          title: '资源准备',
+          task: () => {
+            return new Tasks(_tasks, {concurrent: true})
+          }
+        }, application.tasks['respak:package']])
+      } else {
+        let respakList: {
+          [key: string]: string
+        } = {
           'INFO': 'resv.txt',
           'BIAS': 'bias.bin',
           'MLPR': 'mlp.bin',
           'KEY1': 'main.bin',
           'KEY2': 'cmd.bin',
-          'WAKE': 'wakelist.txt',
-          'WRAP': 'wrap.json',
           'KMAP': 'keywords.txt',
-          'HARD': 'hardware.json',
-          'CONF': 'application.json',
           'TEST': '1KHz.mp3',
-          'R011': 'resv.txt',
-          'R012': 'resv.txt',
-          'R013': 'resv.txt',
-          'R014': 'resv.txt',
-          'R015': 'resv.txt',
-          'R016': 'resv.txt',
-          'R017': 'resv.txt',
-          'R018': 'resv.txt',
-          'R019': 'resv.txt',
+          'R007': 'resv.txt',
+          'R008': 'hardware.json',
+          'R009': 'application.json',
         }
+  
+        if (application.context.algo) {
+          respakList = {
+            'INFO': 'resv.txt',
+            'BIAS': 'bias.bin',
+            'MLPR': 'mlp.bin',
+            'KEY1': 'main.bin',
+            'KEY2': 'cmd.bin',
+            'WAKE': 'wakelist.txt',
+            'WRAP': 'wrap.json',
+            'KMAP': 'keywords.txt',
+            'HARD': 'hardware.json',
+            'CONF': 'application.json',
+            'TEST': '1KHz.mp3',
+            'R011': 'resv.txt',
+            'R012': 'resv.txt',
+            'R013': 'resv.txt',
+            'R014': 'resv.txt',
+            'R015': 'resv.txt',
+            'R016': 'resv.txt',
+            'R017': 'resv.txt',
+            'R018': 'resv.txt',
+            'R019': 'resv.txt',
+          }
+        }
+  
+        loadPackageJSON()
+  
+        if (Object.keys(application.packageJSON?.dependencies || {}).includes('@source/csk4002nc')) {
+          respakList = Object.assign(respakList, {
+            'KEY1': 'resv.txt',
+            'KEY2': 'resv.txt',
+            'KMAP': 'resv.txt',
+            'R007': 'eq_default.bin',
+          })
+        }
+  
+        ctx.respakList = respakList
+  
+        const _preBuildRes = new PreBuildRes(ctx, task, application, core.got)
+        const pconfig = await _preBuildRes.start()
+        application.log(JSON.stringify(pconfig))
+        await cli.wait(3000)
+  
+        const _posBuildRes = new PosBuildRes(ctx, task, application)
+        await _posBuildRes.start(pconfig)
       }
 
-      loadPackageJSON()
 
-      if (Object.keys(application.packageJSON?.dependencies || {}).includes('@source/csk4002nc')) {
-        respakList = Object.assign(respakList, {
-          'KEY1': 'resv.txt',
-          'KEY2': 'resv.txt',
-          'KMAP': 'resv.txt',
-          'R007': 'eq_default.bin',
-        })
-      }
-
-      ctx.respakList = respakList
-
-      const _preBuildRes = new PreBuildRes(ctx, task, application, core.got)
-      const pconfig = await _preBuildRes.start()
-      application.log(JSON.stringify(pconfig))
-      await cli.wait(3000)
-
-      const _posBuildRes = new PosBuildRes(ctx, task, application)
-      await _posBuildRes.start(pconfig)
+      
 
     }
   })
-  job('build:newrespak', {
-    title: '编译respak.bin',
-    task: async (ctx, task) => {
-
-      let respakList: {
-        [key: string]: string
-      } = application.context?.cskBuild?.respakList
-
-
-      if (!respakList) {
-        throw new Error('缺少respak分区表，请确认该源码固件的respak分区表是否存在')
-      }
-
-      const targetRespakList: {[key: string]: string} = {}
-
-      for (let key in respakList) {
-        let value = respakList[key]
-        switch(key) {
-          case 'BIAS':
-            key = 'CAEM'
-            value = 'cae.bin'
-            break
-          case 'MLPR':
-            key = 'ESRM'
-            value = 'esr.bin'
-            break
-          case 'TEST':
-            value = 'test.mp3'
-            break
-          case 'CONF':
-            value = 'application.json'
-            break
-          default:
-            break
-        }
-        switch(value) {
-          case 'cmds.bin':
-            value = 'cmd.bin'
-            break
-          default:
-            break
-        }
-        targetRespakList[key] = value
-      }
-
-
-      ctx.respakList = targetRespakList
-
-      const tasks = Array.from(new Set(Object.values(targetRespakList).map(item => {
-        let task = 'respak:'
-        switch(item) {
-          case 'info.txt':
-            task += 'info'
-            break
-          case 'resv.txt':
-            task += 'resv'
-            break
-          case 'cae.bin':
-            task += 'cae'
-            break
-          case 'esr.bin':
-            task += 'esr'
-            break
-          case 'main.bin':
-          case 'cmd.bin':
-            task += 'language'
-            break
-          case 'wakelist.txt':
-            task += 'wakelist'
-            break
-          case 'wrap.json':
-            task += 'wrap'
-            break
-          case 'keywords.txt':
-            task += 'keywords'
-            break
-          case 'hardware.json':
-            task += 'hardware'
-            break
-          case 'application.json':
-            task += 'application'
-            break
-          case 'test.mp3':
-            task += 'test'
-            break
-          default:
-            task += 'resv'
-            break
-        }
-        return task
-      })))
-
-      const _tasks: TaskObject[] = []
-      tasks.forEach(task => {
-        if (application.tasks.hasOwnProperty(task)) {
-          _tasks.push(application.tasks[task])
-        }
-      });
-
-      if (application.tasks.hasOwnProperty('respak:tones')) {
-        _tasks.push(application.tasks['respak:tones'])
-      }
-
-      return new Tasks([{
-        title: '资源准备',
-        task: () => {
-          return new Tasks(_tasks, {concurrent: true})
-        }
-      }, application.tasks['respak:package']])
-
-    }
-  })
-
   job('build:package', {
     title: '打包lpk包',
     task: async (ctx, task) => {
