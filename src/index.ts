@@ -4,13 +4,12 @@ import {loadPackageJSON, load} from '@listenai/lisa_core'
 import * as path from 'path'
 import { CliUx } from './ux'
 import * as Configstore from 'configstore'
-import * as eventLog from './util/eventLog'
+import eventLog from './util/eventLog'
 import task from "./task"
 const { application, runner } = lisa
 
 // 功能在本方法中实现
 export async function main() {
-
   loadPackageJSON(path.join(__dirname, "../package.json"))
 
   const cliUx = new CliUx()
@@ -65,7 +64,7 @@ async function initElseDeps() {
   ]
 
   application.addGlobalContext({'board':board,'algo':algo})
-  eventLog()
+  await eventLog()
 }
 
 // 这个不要修改

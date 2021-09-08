@@ -9,6 +9,7 @@ import { CliUx } from './ux'
 import RespakList from './util/respakList'
 
 import respak from './tasks/respak'
+import { main } from '.'
 
 export default (core = lisa) => {
   const {job, fs, application, Tasks} = core
@@ -242,6 +243,13 @@ export default (core = lisa) => {
       const projectInfo = await cliUx.getLSCloudProjectInfo()
       const _packageLpk = new PackageLpk(task, application)
       await _packageLpk.factory(projectInfo)
+    },
+  })
+  job('csk:test', {
+    title: 'cs test',
+    task: async (ctx, task) => {
+      lisa.application.log(`**************csk 测试`)
+      main()
     },
   })
 }

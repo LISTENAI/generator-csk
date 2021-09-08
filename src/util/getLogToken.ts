@@ -14,7 +14,7 @@ async function getLogToken(id: number | string) {
       responseType: 'json'
     });
     return (body as any)?.token
-  } catch (error) {
+  } catch (error:any) {
     if (error.message.indexOf('code 400')) {
       console.log('该账号无该项目访问权限，请确认打包账号或LSCloud项目id')
     } else if (error.message.indexOf('code 400')) {

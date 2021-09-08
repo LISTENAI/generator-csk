@@ -268,7 +268,7 @@ export class CliUx {
       }
       console.log(`该算法包${algo}没有支持当前固件的版本，请选择其他算法包`)
       return ''
-    } catch (error) {
+    } catch (error:any) {
       console.log(error.message)
       return ''
     }
