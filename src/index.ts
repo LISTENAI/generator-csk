@@ -4,7 +4,7 @@ import {loadPackageJSON, load} from '@listenai/lisa_core'
 import * as path from 'path'
 import { CliUx } from './ux'
 import * as Configstore from 'configstore'
-
+import * as eventLog from './util/eventLog'
 import task from "./task"
 const { application, runner } = lisa
 
@@ -16,9 +16,7 @@ export async function main() {
   const cliUx = new CliUx()
   application.root = path.resolve('.')
   const firmware = await cliUx.getFirmware()
-  application.packageJSON.dep = [
-    `${firmware.chip}@~${firmware.version}`,
-  ]
+  application.addGlobalContext({'source':`${firmware.chip}@~${firmware.version}`})
 
   application.packageJSON.name = cliUx.getProjectName(application.root)
 
@@ -65,6 +63,9 @@ async function initElseDeps() {
     board,
     algo,
   ]
+
+  application.addGlobalContext({'board':board,'algo':algo})
+  eventLog()
 }
 
 // 这个不要修改
