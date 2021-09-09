@@ -1,0 +1,12 @@
+{
+	"name": "test_set",
+	"version": "1.0.0",
+	"description": "",
+	"author": "",
+	"license": "ISC",
+	"lisa": {},
+	"dependencies": {
+		"@algo/csk3002-cae-mlp": "^1.0.1",
+		"@board/lskits-csk3002": "^1.0.5"
+	}
+}

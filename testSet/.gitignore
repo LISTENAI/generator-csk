@@ -1,0 +1,7 @@
+
+node_modules
+.DS_Store
+.lisa
+target
+optimize/audio_record/**
+spec/dataset/audio_original/**

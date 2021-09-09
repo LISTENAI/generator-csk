@@ -6,10 +6,10 @@ async function eventLog() {
     const accessToken = config.get('userInfo')?.accessToken
     const context = lisa.application.context
     const params = {
-      event_type: 'generator-csk',
+      event_type: 'lisa_action',
       command: 'create',
-      arguments: {},
-      flags: {},
+      arguments: "",
+      flags: "",
       source: context.source, //芯片方案包
       board: context.board, //版型模版包
       algo: context.algo, //算法包
