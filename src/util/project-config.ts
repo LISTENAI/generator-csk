@@ -69,46 +69,46 @@ function initConfig(application: Application): any {
     const entityTts: Tones[] = [];
     (interactConfig.interact || []).forEach(item => {
       switch (item.action) {
-      case 'welcome':
-        if (item.play && item.play !== 1001) {
-          item.play = interactPlayTts[item.play] || item.play || ''
-          welcome.push(parseInt(String(item.play), 10))
-        }
-        break
-      case 'cmd':
-        if (item.text) {
-          if (item.play && item.play === 1001) {
-            maxTtsId += 1
-            entityTts.push({
-              id: maxTtsId,
-              text: `将为您${item.text}`,
-            })
-            item.play = maxTtsId
-          }
+        case 'welcome':
           if (item.play && item.play !== 1001) {
             item.play = interactPlayTts[item.play] || item.play || ''
+            welcome.push(parseInt(String(item.play), 10))
           }
-          cmds.push(item)
-        }
-        break
-      case 'wakeup':
-        if (item.text) {
-          if (item.play && item.play === 1001) {
-            maxTtsId += 1
-            entityTts.push({
-              id: maxTtsId,
-              text: `将为您${item.text}`,
-            })
-            item.play = maxTtsId
+          break
+        case 'cmd':
+          if (item.text) {
+            if (item.play && item.play === 1001) {
+              maxTtsId += 1
+              entityTts.push({
+                id: maxTtsId,
+                text: `将为您${item.text}`,
+              })
+              item.play = maxTtsId
+            }
+            if (item.play && item.play !== 1001) {
+              item.play = interactPlayTts[item.play] || item.play || ''
+            }
+            cmds.push(item)
           }
-          if (item.play && item.play !== 1001) {
-            item.play = interactPlayTts[item.play] || item.play || ''
+          break
+        case 'wakeup':
+          if (item.text) {
+            if (item.play && item.play === 1001) {
+              maxTtsId += 1
+              entityTts.push({
+                id: maxTtsId,
+                text: `将为您${item.text}`,
+              })
+              item.play = maxTtsId
+            }
+            if (item.play && item.play !== 1001) {
+              item.play = interactPlayTts[item.play] || item.play || ''
+            }
+            wakeup.push(item)
           }
-          wakeup.push(item)
-        }
-        break
-      default:
-        break
+          break
+        default:
+          break
       }
     })
 

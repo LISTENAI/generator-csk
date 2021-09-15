@@ -29,17 +29,24 @@ export default (core = lisa) => {
     task: async (ctx, task) => {
       const caeFile = buildingFile(application, 'cae.bin')
       fs.removeSync(caeFile)
+      
+      // 1、兜底为算法包中的 cae
       if (application.context.algo) {
         const algoCae = application.context.algo?.cae_res?.file_path || ''
         await fs.copy(algoCae, caeFile)
-      } else {
-        if (fs.existsSync(aliasFile(application, 'bias.bin'))) {
-          await fs.copy(aliasFile(application, 'bias.bin'), caeFile)
-        }
-        if (fs.existsSync(aliasFile(application, 'cae.bin'))) {
-          await fs.copy(aliasFile(application, 'cae.bin'), caeFile)
-        }
       }
+      
+      // 2、若alias目录中存在bias.bin，优先级高
+      if (fs.existsSync(aliasFile(application, 'bias.bin'))) {
+        await fs.copy(aliasFile(application, 'bias.bin'), caeFile)
+      }
+
+      // 3、若alias目录中存在cae.bin，优先级更加高
+      if (fs.existsSync(aliasFile(application, 'cae.bin'))) {
+        await fs.copy(aliasFile(application, 'cae.bin'), caeFile)
+      }
+
+      // 若3处地方都没有caeFile
       if (!fs.existsSync(caeFile)) {
         throw new Error('缺少bias.bin资源，检查是否已经安装了algo算法包，或alias文件夹中是否存在该资源')
       }
@@ -53,17 +60,24 @@ export default (core = lisa) => {
       const esrFile = buildingFile(application, 'esr.bin')
       const mlpFile = buildingFile(application, 'mlp.bin')
       fs.removeSync(esrFile)
+
+      // 1、兜底为算法包中的 mlp
       if (application.context.algo) {
         const algoCae = application.context.algo?.esr_res?.file_path || ''
         await fs.copy(algoCae, esrFile)
-      } else {
-        if (fs.existsSync(aliasFile(application, 'mlp.bin'))) {
-          await fs.copy(aliasFile(application, 'mlp.bin'), esrFile)
-        }
-        if (fs.existsSync(aliasFile(application, 'esr.bin'))) {
-          await fs.copy(aliasFile(application, 'esr.bin'), esrFile)
-        }
       }
+
+      // 2、若alias目录中存在 mlp.bin，优先级高
+      if (fs.existsSync(aliasFile(application, 'mlp.bin'))) {
+        await fs.copy(aliasFile(application, 'mlp.bin'), esrFile)
+      }
+
+      // 3、若alias目录中存在 esr.bin，优先级更加高
+      if (fs.existsSync(aliasFile(application, 'esr.bin'))) {
+        await fs.copy(aliasFile(application, 'esr.bin'), esrFile)
+      }
+
+      // 4、若3处均没有，从云端下载下来
       if (!fs.existsSync(esrFile)) {
         await download({
           uri: 'https://cdn.iflyos.cn/public/lstudio/mlpDir/mlp.bin',
@@ -199,8 +213,23 @@ export default (core = lisa) => {
   job('respak:language', {
     title: '准备唤醒/识别资源',
     task: async (ctx, task) => {
-      const initAsr = new InitAsr(task, application)
-      await initAsr.start()
+      const mainFile = buildingFile(application, 'main.bin')
+      const cmdFile = buildingFile(application, 'cmd.bin')
+      fs.removeSync(mainFile)
+      fs.removeSync(cmdFile)
+
+      if (fs.existsSync(aliasFile(application, 'main.bin'))) {
+        await fs.copy(aliasFile(application, 'main.bin'), mainFile)
+      }
+
+      if (fs.existsSync(aliasFile(application, 'cmd.bin'))) {
+        await fs.copy(aliasFile(application, 'cmd.bin'), cmdFile)
+      }
+
+      if (!fs.existsSync(mainFile) || !fs.existsSync(cmdFile)) {
+        const initAsr = new InitAsr(task, application)
+        await initAsr.start()  
+      }
     },
   })
 

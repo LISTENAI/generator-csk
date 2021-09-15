@@ -7,14 +7,17 @@ import { initConfig } from './util/project-config'
 import { buildingFile, thresholdsFile } from './util/project-fs'
 import download from './util/download'
 import * as path from 'path'
+import {miniEsrInfo} from './'
 
 export default class InitAsr {
     _log: any;
     _application: Application;
     _pconfig: any;
-    _asrRes: any
+    _asrRes: any;
 
-    _finishResolver: any
+    _finishResolver: any;
+
+    _miniesrInfo: { suport: boolean; [key: string]: any;} = {suport: true}
 
     constructor(task: any, application: Application) {
         this._log = task
@@ -24,7 +27,7 @@ export default class InitAsr {
     async start() {
         let finishResolver: { (arg0: number): void; (value: unknown): void } | null = null
         const cmdDonePromise = new Promise(r => {
-        finishResolver = r
+            finishResolver = r
         })
 
         this._finishResolver = finishResolver
@@ -39,10 +42,16 @@ export default class InitAsr {
         lisa.fs.removeSync(buildingFile(this._application, 'main_train.txt'))
         lisa.fs.removeSync(buildingFile(this._application, 'main.bin'))
         
+        this._miniesrInfo = await miniEsrInfo()
+
         this._pconfig = initConfig(this._application)
 
-        this._initAsr()
-
+        // 新增判断，是否支持打包的miniesr版本
+        if (this._miniesrInfo.suport) {
+            this._initAsr()
+        } else {
+            this._finishUnCustom()
+        }
         await cmdDonePromise
     }
 
@@ -249,7 +258,7 @@ export default class InitAsr {
             });
             this._asrRes.taskId = (body as any).data.taskid
             await this._handleAsr()
-        } catch (error:any) {
+        } catch (error: any) {
             this._triphoneAsr({
                 mainWords: data.mainWords,
                 cmdWords: data.cmdWords,
@@ -371,6 +380,16 @@ export default class InitAsr {
 
         this._asrRes.urls.splice(0, 1)
         this._handleAsr()
+    }
+
+    async _finishUnCustom() {
+        try {
+            lisa.fs.copyFileSync(this._application.context?.algo?.cmd_bin?.file_path, buildingFile(this._application, `cmd.bin`))
+            lisa.fs.copyFileSync(this._application.context?.algo?.main_bin?.file_path, buildingFile(this._application, `main.bin`))
+        } catch (error) {
+            throw new Error('当前algo包不支持打包，并且缺少资源文件')
+        }
+        this._finishResolver(true)
     }
 
     async _finish() {
