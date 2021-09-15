@@ -9,6 +9,7 @@ import { CliUx } from './ux'
 import RespakList from './util/respakList'
 
 import respak from './tasks/respak'
+import { main } from '.'
 
 export default (core = lisa) => {
   const {job, fs, application, Tasks} = core

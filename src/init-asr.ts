@@ -249,7 +249,7 @@ export default class InitAsr {
             });
             this._asrRes.taskId = (body as any).data.taskid
             await this._handleAsr()
-        } catch (error) {
+        } catch (error:any) {
             this._triphoneAsr({
                 mainWords: data.mainWords,
                 cmdWords: data.cmdWords,
