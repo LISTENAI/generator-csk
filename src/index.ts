@@ -15,6 +15,10 @@ export async function main() {
   const cliUx = new CliUx()
   application.root = path.resolve('.')
   const firmware = await cliUx.getFirmware()
+
+  application.packageJSON.dep = [
+    `${firmware.chip}@~${firmware.version}`,
+  ]
   application.addGlobalContext({'source':`${firmware.chip}@~${firmware.version}`})
 
   application.packageJSON.name = cliUx.getProjectName(application.root)
