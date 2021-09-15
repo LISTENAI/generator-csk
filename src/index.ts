@@ -1,12 +1,12 @@
 import lisa from '@listenai/lisa_core'
-import {loadPackageJSON, load} from '@listenai/lisa_core'
+import {loadPackageJSON, load, loadPreRunTask} from '@listenai/lisa_core'
 
 import * as path from 'path'
 import { CliUx } from './ux'
 import * as Configstore from 'configstore'
 
 import task from "./task"
-const { application, runner } = lisa
+const { application, runner, fs } = lisa
 
 // 功能在本方法中实现
 export async function main() {
@@ -65,6 +65,38 @@ async function initElseDeps() {
     board,
     algo,
   ]
+}
+
+export async function miniEsrInfo() {
+  const SUPORT = [1266]
+  const {fs} = lisa
+  let miniEsrVersion
+  if (application.context?.algo?.esr_res) {
+    miniEsrVersion = Number(application.context?.algo?.esr_res?.version || 1266);
+  } else {
+    await Promise.all([
+      loadPreRunTask()
+    ])
+    miniEsrVersion = Number(application.context?.algo?.esr_res?.version || 1266);
+  }
+  if (SUPORT.includes(miniEsrVersion)) {
+    return {
+      suport: true
+    }
+  } else {
+    let map = []
+    try {
+      if (application.context?.algo?.map_json) {
+        map = fs.readJSONSync(application.context?.algo?.map_json?.file_path)
+      }
+    } catch (error) {
+      
+    }
+    return {
+      suport: false,
+      map
+    }
+  }
 }
 
 // 这个不要修改
