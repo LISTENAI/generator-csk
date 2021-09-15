@@ -58,6 +58,8 @@
     "@tool/optimize": "^2",
     "@types/configstore": "^4.0.0",
     "@types/crc": "^3.4.0",
+    "@types/minimist": "^1.2.1",
+    "@types/inquirer": "^7.3.1",
     "cli-ux": "^5.5.1",
     "configstore": "^5.0.1",
     "crc": "^3.8.0",
@@ -65,9 +67,7 @@
     "ts-node": "^9.1.1"
   },
   "devDependencies": {
-    "@types/inquirer": "^7.3.1",
     "@types/jest": "^26.0.20",
-    "@types/minimist": "^1.2.1",
     "del-cli": "^3.0.1",
     "jest": "^26.6.3",
     "mock-stdin": "^1.0.0",
