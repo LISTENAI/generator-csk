@@ -101,7 +101,7 @@ export default class InitTones {
                 });
                 this._application.log(JSON.stringify((body as any).data.url))
                 await this._saveTone((body as any).data.url, this._tones[0])  
-            } catch (error:any) {
+            } catch (error: any) {
                 throw new Error(error.message)
             }
         } else {

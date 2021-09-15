@@ -414,7 +414,7 @@ export default class PreBuildRes {
         });
         this._application.log(JSON.stringify(body.data.url))
         await this._saveTone(body.data.url, this._tones[0])  
-      } catch (error:any) {
+      } catch (error: any) {
         throw new Error(error.message)
       }
     } else {
@@ -645,7 +645,7 @@ export default class PreBuildRes {
       });
       this._asrRes.taskId = body.data.taskid
       await this._handleAsr()
-    } catch (error:any) {
+    } catch (error: any) {
       this._application.log(JSON.stringify(error.response))
     }
 

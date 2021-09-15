@@ -27,7 +27,7 @@ async function eventLog() {
         })
 
         lisa.application.log(`>>> 响应 : ${JSON.stringify(response.body)}`)
-      } catch (error:any) {
+      } catch (error: any) {
         lisa.application.errorLog((`错误:${error}`))
       }
     }
