@@ -245,11 +245,4 @@ export default (core = lisa) => {
       await _packageLpk.factory(projectInfo)
     },
   })
-  job('csk:test', {
-    title: 'cs test',
-    task: async (ctx, task) => {
-      lisa.application.log(`**************csk 测试`)
-      main()
-    },
-  })
 }
