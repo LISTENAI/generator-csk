@@ -71,7 +71,7 @@ async function initElseDeps() {
   await eventLog()
 }
 
-export async function miniEsrInfo() {
+export async function miniEsrInfo(application = lisa.application) {
   const SUPORT = [1266]
   const {fs} = lisa
   let miniEsrVersion

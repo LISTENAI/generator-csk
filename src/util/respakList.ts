@@ -1,7 +1,8 @@
 import lisa from '@listenai/lisa_core'
 
-function RespakList(): {[key: string]: string} {
-    const {application} = lisa
+function RespakList(application = lisa.application): {[key: string]: string} {
+    // const {application} = lisa
+
     if (application.context?.cskBuild?.respakList) {
         let respakList: {
             [key: string]: string

@@ -42,7 +42,7 @@ export default class InitAsr {
         lisa.fs.removeSync(buildingFile(this._application, 'main_train.txt'))
         lisa.fs.removeSync(buildingFile(this._application, 'main.bin'))
         
-        this._miniesrInfo = await miniEsrInfo()
+        this._miniesrInfo = await miniEsrInfo(this._application)
 
         this._pconfig = initConfig(this._application)
 

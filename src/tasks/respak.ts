@@ -189,17 +189,16 @@ export default (core = lisa) => {
           infrared_cmds: [],
         }
         if (_pconfig.applicationJson.business.sys_mode === 'private' && Boolean(word.cmds)) {
-          if (ctrlMode === 2) {
-            item.infrared_cmds = word.cmds.replace(/\s/g, '')
+          item.cmds = cmdsTypeHex ?
+            word.cmds.replace(/\s/g, '').match(reg) && word.cmds.replace(/\s/g, '').match(reg).map((item: any) => parseInt(item, 16)) :
+            word.cmds.split('') && word.cmds.split('').map((item: any) => item.charCodeAt())
+        }
+        if (_pconfig.applicationJson.business.sys_mode === 'private' && Boolean(word.pwm)) {
+          item.infrared_cmds = word.pwm.replace(/\s/g, '')
             .replace(/，/g, ',')
             .split(',')
             .filter((item: any) => item !== '')
             .map((item: any) => parseInt(item, 10))
-          } else {
-            item.cmds = cmdsTypeHex ?
-              word.cmds.replace(/\s/g, '').match(reg) && word.cmds.replace(/\s/g, '').match(reg).map((item: any) => parseInt(item, 16)) :
-              word.cmds.split('') && word.cmds.split('').map((item: any) => item.charCodeAt())
-          }
         }
         keywords.push(JSON.stringify(item))
       })

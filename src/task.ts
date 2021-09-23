@@ -90,7 +90,7 @@ export default (core = lisa) => {
 
       if (application.context?.cskBuild?.respakList) {
   
-        const targetRespakList: {[key: string]: string} = RespakList()
+        const targetRespakList: {[key: string]: string} = RespakList(application)
         ctx.respakList = targetRespakList
   
         const tasks = Array.from(new Set(Object.values(targetRespakList).map(item => {
