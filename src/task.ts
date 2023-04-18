@@ -79,7 +79,7 @@ export default (core = lisa) => {
         cwd: application.root,
       })
       if (res.stdout.indexOf('成功') < 0) {
-        throw new Error('安装依赖失败')
+        throw new Error('安装依赖失败，请确认你有这些库的权限，或找FAE支持')
       }
     },
   })
